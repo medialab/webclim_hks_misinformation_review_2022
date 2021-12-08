@@ -17,5 +17,5 @@ To collect all the posts of reduced groups from CrowdTangle, I ran (it took 11 h
 
 To generate the figures, run:
 ```
-python code/create_figures.py
+python code/create_figures_for_groups.py
 ```
