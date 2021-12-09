@@ -71,7 +71,7 @@ def calculate_engagement_percentage_change(df_posts, df_dates, period_length=30)
             (df_posts_group['date'] <= reduced_distribution_date + timedelta(days=period_length))
         ]
 
-        if (len(posts_df_group_before) > 0) & (len(posts_df_group_after) > 0) & (np.mean(posts_df_group_after['engagement']) > 0):
+        if (len(posts_df_group_before) > 0) & (len(posts_df_group_after) > 0):
             
             sumup_df = sumup_df.append({
                 'group_id': group_id,
@@ -140,6 +140,7 @@ if __name__=="__main__":
 
     sumup_df = calculate_engagement_percentage_change(df_posts, df_dates)
     plot_engagement_percentage_change(sumup_df)
+    print('Number of groups:', len(sumup_df))
     print('Median of the engagement percentage changes for the self-declared reduced groups:', 
           np.median(sumup_df['percentage_change_engagement']))
     w, p = stats.wilcoxon(sumup_df['percentage_change_engagement'])
