@@ -7,6 +7,7 @@ if __name__ == "__main__":
 
     df = import_data("posts_url_2021-12-15.csv")
     df = df[df['account_type']=='facebook_group']
+    df = df.dropna(subset=['url', 'account_id'])
     df = df.drop_duplicates(subset=['url', 'account_id'])
 
     s = df["account_url"].value_counts()

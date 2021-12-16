@@ -123,7 +123,7 @@ def plot_engagement_percentage_change(sumup_df):
     
     ax.set_frame_on(False)
     plt.tight_layout()
-    plt.savefig('./figure/engagement_percentage_change_for_self_declared_reduced_groups.png')
+    plt.savefig('./figure/engagement_percentage_change_for_reduced_groups.png')
 
 
 if __name__=="__main__":
