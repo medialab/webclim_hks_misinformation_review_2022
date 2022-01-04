@@ -97,9 +97,9 @@ def calculate_confidence_interval_median(sample):
 
 def plot_engagement_percentage_change(sumup_df):
 
-    plt.figure(figsize=(7, 3))
+    plt.figure(figsize=(7, 2.5))
     ax = plt.subplot()
-    plt.title("{} 'reduced distribution' Facebook groups".format(len(sumup_df)))
+    plt.title("{} 'reduced distribution' Facebook groups (CrowdTangle search)".format(len(sumup_df)))
 
     random_y = list(np.random.random(len(sumup_df)))
     plt.plot(sumup_df['percentage_change_engagement'].values, 
@@ -123,35 +123,23 @@ def plot_engagement_percentage_change(sumup_df):
     
     ax.set_frame_on(False)
     plt.tight_layout()
-    plt.savefig('./figure/engagement_percentage_change_for_reduced_groups.png')
+    plt.savefig('./figure/engagement_percentage_change_for_self_declared_reduced_groups.png')
 
 
 if __name__=="__main__":
 
+
+    ### Figure 1 ###
     df_dates = pd.read_csv('./data/manually_filtered_reduced_posts.csv')
     df_dates['post_date'] = pd.to_datetime(df_dates['post_date'])
-    # plot_reduced_posts_dates(df_dates)
+    plot_reduced_posts_dates(df_dates)
+
+    ### Figure 2 ###
 
     df_dates = df_dates.sort_values(by=['url_group', 'post_date']).drop_duplicates(subset=['url_group'])
     df_dates['group_id'] = df_dates['url_group'].apply(lambda x: x.split('/')[-1]).astype(int)
 
-    df_posts = pd.read_csv('./data/posts_reduced_groups_2021-12-02.csv')
-    # df_posts_1 = pd.read_csv('./data/posts_reduced_groups_2021-12-02.csv')
-    # list_incomplete_group_id = [
-    #     2047323015495073,
-    #     428701557713036,
-    #     809698062388699,
-    #     1724943211069371,
-    #     573237029692265,
-    #     956639144530818,
-    #     486493481526463,
-    #     1656750397876828,
-    #     934290230389487,
-    #     487516554957091
-    # ]
-    # df_posts_1 = df_posts_1[~df_posts_1['account_id'].isin(list_incomplete_group_id)]
-    # df_posts_2 = pd.read_csv('./data/posts_reduced_groups_2022-01-03_small.csv')
-    # df_posts = pd.concat([df_posts_1, df_posts_2])
+    df_posts = pd.read_csv('./data/posts_reduced_groups_2022-01-03.csv')
     df_posts = clean_df_posts(df_posts)
 
     sumup_df = calculate_engagement_percentage_change(df_posts, df_dates)
