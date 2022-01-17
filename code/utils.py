@@ -1,6 +1,7 @@
 import os
 
 import pandas as pd
+import matplotlib.pyplot as plt
 
 
 def import_data(file_name, folder=None):
@@ -26,3 +27,15 @@ def export_data(df, file_name, folder=None):
     print("The '{}' file has been printed in the '{}' folder.".format(
         csv_path.split('/')[-1], csv_path.split('/')[-2])
     )
+
+
+def save_figure(figure_name):
+
+    figure_path = os.path.join(".", "figure", figure_name + '.png')
+    plt.savefig(figure_path)
+
+    print(
+        '\n' + figure_name.upper() + '\n',
+        "The '{}' figure has been saved in the '{}' folder.\n"\
+            .format(figure_path.split('/')[-1], figure_path.split('/')[-2])
+        )
