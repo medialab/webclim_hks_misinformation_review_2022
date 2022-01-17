@@ -1,8 +1,31 @@
-### Data collection
+## Data collection
 
-First configure a `.minetrc` file with a CrowdTangle token to be able to collect the data.
+First configure a `.minetrc` file with a BuzzSumo and a CrowdTangle API token to be able to collect the data using the Python library minet.
 
-#### Repeat offender groups (CrowdTangle search)
+#### Misinformation websites (Condor data)
+
+```
+python code/clean_condor_data.py
+python code/write_domain_lists_condor.py
+
+python code/collect_bz_domain.py summary_condor_bz_5+.csv condor_bz_5+.csv domains_condor_data
+python code/collect_bz_domain.py summary_condor_bz_3-4.csv condor_bz_3-4.csv domains_condor_data
+python code/collect_bz_domain.py summary_condor_bz_2.csv condor_bz_2.csv domains_condor_data
+```
+
+# Misinformation websites (Science Feedback data)
+
+```
+python code/clean_sciencefeedback_data_for_domains.py 2021-10-21
+
+minet bz domain-summary domain_name data/domains_sciencefeedback_data/sf_bz_unfiltered_2+.csv --begin-date 2019-05-01 --end-date 2021-10-15 > data/domains_sciencefeedback_data/summary_sf_bz_unfiltered_2+.csv
+
+python code/write_domain_lists_sciencefeedback.py
+
+minet bz domain domain_name data/domains_sciencefeedback_data/summary_sf_bz_2+.csv --select domain_name  --begin-date 2019-05-01 --end-date 2021-10-15 > data/domains_sciencefeedback_data/sf_bz_2+.csv
+```
+
+#### Misinformation Facebook groups (CrowdTangle search)
 
 To collect all the Facebook posts with the terms "Your group's distribution is reduced due to false information" from CrowdTangle, you should run (it took less than one minute):
 ```
@@ -15,7 +38,7 @@ To collect all the posts of reduced groups from CrowdTangle, I ran (it took 11 h
 ```
 (You should change the list id if you want to replicate our method with your CrowdTangle account.)
 
-#### Repeat offender groups (Science Feedback data)
+#### Misinformation Facebook groups (Science Feedback data)
 
 ```
 python code/clean_sciencefeedback_data_for_groups.py 2021-12-15
@@ -24,9 +47,9 @@ python code/filter_repeat_offender_groups.py
 ./code/collect_command_for_sf_groups.sh # Run in 8h
 ```
 
-### Figures
+## Figures
 
-To generate the figures, run:
+To generate the figures from the data csv files, run:
 ```
-python code/create_figures_for_groups.py
+python code/create_figures.py
 ```
