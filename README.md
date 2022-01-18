@@ -32,11 +32,11 @@ To collect all the Facebook posts with the terms "Your group's distribution is r
 ./code/search_command_for_reduced_groups.sh
 ```
 
-To collect all the posts of reduced groups from CrowdTangle, I ran (it took 11 hours):
+The posts collected were then manually filtered using the criteria described in the article. To collect all the posts from CrowdTangle published by the remaining groups, you should run:
 ```
 ./code/collect_command_for_reduced_groups.sh
 ```
-(You should change the list id if you want to replicate our method with your CrowdTangle account.)
+The command took 11 hours to run and you should change the list id if you want to replicate our method with your CrowdTangle account.
 
 #### Misinformation Facebook groups (Science Feedback data)
 
@@ -46,6 +46,8 @@ python code/clean_sciencefeedback_data_for_groups.py 2021-12-15
 python code/filter_repeat_offender_groups.py
 ./code/collect_command_for_sf_groups.sh # Run in 8h
 ```
+
+Again you should change the list id for the last comman if you want to replicate our method with your CrowdTangle account.
 
 ## Figures
 
