@@ -6,3 +6,5 @@ __pycache__
 
 *.csv
 *.csv#
+
+!data/groups_crowdtangle_search/list_reduced_posts.csv
