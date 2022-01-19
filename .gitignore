@@ -1,8 +1,11 @@
 .minetrc
+.env
 
 __pycache__
 .ipynb_checkpoints/
 *.ipynb
+
+figure_7*
 
 *.csv
 *.csv#

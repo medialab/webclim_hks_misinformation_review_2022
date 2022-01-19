@@ -313,6 +313,82 @@ def clean_df_url_posts(df_url_posts):
     return df_url_posts
 
 
+def timeseries_template(ax):
+    plt.xlim(np.datetime64('2019-01-01'), np.datetime64('2021-12-31'))
+    plt.locator_params(axis='y', nbins=4)
+    ax.grid(axis="y")
+    ax.set_frame_on(False)
+
+
+# def plot_engagement_dynamics(df_1, df_2, df_3, df_4):
+
+#     ### Engagement per article / post
+
+#     plt.figure(figsize=(7, 8))
+
+#     ax = plt.subplot(411)
+#     plt.plot(df_1.groupby(by=["date"])['total_facebook_shares'].mean(), color='royalblue')
+#     plt.title("{} websites (Condor data)".format(df_1.domain_name.nunique()))
+#     plt.ylabel("Engagement\nper article / post")
+#     timeseries_template(ax)
+
+#     ax = plt.subplot(412)
+#     plt.plot(df_2.groupby(by=["date"])['total_facebook_shares'].mean(), color='royalblue')
+#     plt.title("{} websites (Science Feedback data)".format(df_2.domain_name.nunique()))
+#     plt.ylim(0, 1000)
+#     plt.ylabel("Engagement\nper article / post")
+#     timeseries_template(ax)
+
+#     ax = plt.subplot(413)
+#     plt.plot(df_3.groupby(by=["date"])['engagement'].mean(), color='royalblue')
+#     plt.title("{} groups (CrowdTangle search)".format(df_3.account_id.nunique()))
+#     plt.ylim(0, 100)
+#     plt.ylabel("Engagement\nper article / post")
+#     timeseries_template(ax)
+
+#     ax = plt.subplot(414)
+#     plt.plot(df_4.groupby(by=["date"])['engagement'].mean(), color="royalblue")
+#     plt.title("{} groups (Science Feedback data)".format(df_4.account_id.nunique()))
+#     plt.ylabel("Engagement\nper article / post")
+#     timeseries_template(ax)
+
+#     plt.tight_layout()
+#     save_figure('figure_7a')
+
+#     ### Total engagement per day
+
+#     plt.figure(figsize=(7, 8))
+
+#     ax = plt.subplot(411)
+#     plt.plot(df_1.groupby(by=["date", "domain_name"])['total_facebook_shares'].sum().groupby(by=['date']).mean(), color='royalblue')
+#     plt.title("{} websites (Condor data)".format(df_1.domain_name.nunique()))
+#     plt.ylabel("Engagement per day")
+#     timeseries_template(ax)
+
+#     ax = plt.subplot(412)
+#     plt.plot(df_2.groupby(by=["date", "domain_name"])['total_facebook_shares'].sum().groupby(by=['date']).mean(), color='royalblue')
+#     plt.title("{} websites (Science Feedback data)".format(df_2.domain_name.nunique()))
+#     plt.ylabel("Engagement per day")
+#     timeseries_template(ax)
+#     plt.ylim(0, 10000)
+
+#     ax = plt.subplot(413)
+#     plt.plot(df_3.groupby(by=["date", "account_id"])['engagement'].sum().groupby(by=['date']).mean(), color='royalblue')
+#     plt.title("{} groups (CrowdTangle search)".format(df_3.account_id.nunique()))
+#     plt.ylabel("Engagement per day")
+#     timeseries_template(ax)
+#     plt.ylim(0, 2000)
+
+#     ax = plt.subplot(414)
+#     plt.plot(df_4.groupby(by=["date", "account_id"])['engagement'].sum().groupby(by=['date']).mean(), color="royalblue")
+#     plt.title("{} groups (Science Feedback data)".format(df_4.account_id.nunique()))
+#     plt.ylabel("Engagement per day")
+#     timeseries_template(ax)
+
+#     plt.tight_layout()
+#     save_figure('figure_7b')
+
+
 if __name__=="__main__":
 
     ### Figure 1 ###
@@ -335,9 +411,9 @@ if __name__=="__main__":
 
     ### Figure 2 ###
 
-    df_sf = import_data('sf_bz_2+.csv', 'domains_sciencefeedback_data')
-    df_sf = clean_buzzsumo_data(df_sf)
-    df_sf = df_sf[~df_sf['domain_name'].isin(condor_domains)]
+    df_sf_0 = import_data('sf_bz_2+.csv', 'domains_sciencefeedback_data')
+    df_sf_0 = clean_buzzsumo_data(df_sf_0)
+    df_sf = df_sf_0[~df_sf_0['domain_name'].isin(condor_domains)]
 
     df_url_sf = import_data('appearances_2021-10-21.csv', 'domains_sciencefeedback_data')
     df_url_sf['date'] = pd.to_datetime(df_url_sf['Date of publication'])
@@ -354,8 +430,8 @@ if __name__=="__main__":
 
     ### Figure 4 ###
 
-    df_dates = df_dates.sort_values(by=['url_group', 'post_date']).drop_duplicates(subset=['url_group'])
-    df_dates['group_id'] = df_dates['url_group'].apply(lambda x: x.split('/')[-1]).astype(int)
+    df_dates = df_dates.sort_values(by=['group_url', 'post_date']).drop_duplicates(subset=['group_url'])
+    df_dates['group_id'] = df_dates['group_url'].apply(lambda x: x.split('/')[-1]).astype(int)
 
     df_posts_1 = import_data('posts_reduced_groups_2022-01-03.csv', folder='groups_crowdtangle_search')
     df_posts_1 = clean_crowdtangle_data(df_posts_1)
@@ -383,3 +459,8 @@ if __name__=="__main__":
     )
     plot_engagement_percentage_change(sumup_df_4, figure_name='figure_5')
     print_statistics(sumup_df_4)
+
+    ### New Dynamic figure ###
+
+    # df_sf_2 = df_sf_0[~df_sf_0['domain_name'].isin(df_condor['domain_name'].unique())]
+    # plot_engagement_dynamics(df_condor, df_sf_2, df_posts_1, df_posts_2)

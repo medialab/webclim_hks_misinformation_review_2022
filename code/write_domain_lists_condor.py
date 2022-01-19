@@ -111,3 +111,8 @@ if __name__=="__main__":
     collect_buzzsumo_summary_per_domain(list_domain_2, params,
                                         "summary_condor_bz_unfiltered_2.csv")
     filter_domain_list("summary_condor_bz_unfiltered_2.csv", "summary_condor_bz_2")
+
+    # list_domain = keep_only_top_domains(df_condor, upper_limit=None, lower_limit=2)
+    # collect_buzzsumo_summary_per_domain(list_domain, params,
+    #                                     "summary_condor_bz_unfiltered.csv")
+    # filter_domain_list("summary_condor_bz_unfiltered.csv", "summary_condor_bz")
