@@ -61,7 +61,7 @@ def keep_only_top_domains(df_condor, upper_limit, lower_limit):
 
 def collect_buzzsumo_summary_per_domain(list_domain, params, output_name):
 
-    output_path = os.path.join(".", "data", output_name)
+    output_path = os.path.join(".", "data", "domains_condor_data", output_name)
     f = open(output_path, 'w')
 
     with f:
@@ -76,7 +76,7 @@ def collect_buzzsumo_summary_per_domain(list_domain, params, output_name):
 
 def filter_domain_list(input_name, output_name):
 
-    df_summary = import_data(input_name)
+    df_summary = import_data(input_name, 'domains_condor_data')
 
     df_summary = df_summary[df_summary['total_pages'] > 1]
     df_summary = df_summary[df_summary['total_pages'] < 1000]
