@@ -15,7 +15,7 @@ if __name__=="__main__":
     output_file = sys.argv[2]
     folder = sys.argv[3]
 
-    df_summary = import_data(input_file, "sciencefeedback", folder)
+    df_summary = import_data(input_file, folder)
 
     load_dotenv()
     token = os.getenv('BUZZSUMO_TOKEN')
@@ -29,6 +29,6 @@ if __name__=="__main__":
         writer = csv.writer(f)
         writer.writerow(data_to_keep)
 
-        for domain in tqdm(df_summary['domain_name'].to_list()):
+        for domain in tqdm(df_summary['domain'].to_list()):
             
             collect_buzzsumo_data_for_one_domain(domain, token, begin_date, end_date, writer)
