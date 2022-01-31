@@ -18,8 +18,8 @@ def clean_buzzsumo_data(df):
     df['date'] = [datetime.fromtimestamp(x).date() for x in df['published_date']]
     df['date'] = pd.to_datetime(df['date'])
     df = df.drop_duplicates(subset=['url'])
-        
-    return df
+            
+    return df[['domain_name', 'date', 'total_facebook_shares', 'twitter_shares']]
 
 
 def infer_strike_dates_for_domains(df_url, domain):
@@ -323,6 +323,60 @@ def clean_df_url_posts(df_url_posts):
     return df_url_posts
 
 
+def plot_website_engagement_over_time(df, figure_name):
+
+    plt.figure(figsize=(7, 3))
+    ax = plt.subplot(111)
+    plt.title("{} websites".format(df.domain_name.nunique()))
+
+    ax.plot(df.groupby(by=["date"])['total_facebook_shares'].mean(), color='royalblue')
+    ax.set_ylabel("Facebook engagement per article", color='royalblue')
+    ax.tick_params(axis='y', colors='royalblue')
+    plt.locator_params(axis='y', nbins=4)
+    ax.grid(axis="y", color='royalblue')
+    ax.set_frame_on(False)
+    ax.set_zorder(10)
+    plt.ylim(bottom=-30, top=5000)
+
+    ax2 = ax.twinx()
+    ax2.plot(df.groupby(by=["date"])['twitter_shares'].mean(), color='deepskyblue')
+    ax2.set_ylabel("Twitter shares per article", color='deepskyblue')
+    ax2.tick_params(axis='y', colors='deepskyblue')
+    plt.locator_params(axis='y', nbins=4)
+    ax2.grid(axis="y", color='deepskyblue')
+    ax2.set_frame_on(False)
+    ax2.set_zorder(0)
+    plt.ylim(bottom=-1)
+
+    plt.xlim(np.datetime64('2019-05-01'), np.datetime64('2021-10-15'))
+    plt.xticks([np.datetime64('2019-07-01'), np.datetime64('2020-01-01'), 
+                np.datetime64('2020-07-01'), np.datetime64('2021-01-01'), 
+                np.datetime64('2021-07-01')])
+    plt.tight_layout()
+    save_figure(figure_name)
+
+
+def plot_group_engagement_over_time(df, figure_name):
+
+    plt.figure(figsize=(7, 2.5))
+    ax = plt.subplot(111)
+    plt.plot(df.groupby(by=["date"])['engagement'].mean(), color='royalblue')
+
+    ax.set_ylabel("Facebook engagement per post", color='royalblue')
+    plt.locator_params(axis='y', nbins=4)
+    ax.tick_params(axis='y', colors='royalblue')
+    ax.grid(axis="y", color='royalblue')
+    plt.ylim(bottom=-1)
+
+    plt.xlim(np.datetime64('2021-01-01'), np.datetime64('2021-12-10'))
+    plt.xticks([np.datetime64('2021-02-01'), np.datetime64('2021-06-01'), np.datetime64('2021-10-01')])
+    
+    plt.title("{} groups".format(df.account_id.nunique()))
+    ax.set_frame_on(False)
+    plt.tight_layout()
+    save_figure(figure_name)
+
+
 if __name__=="__main__":
 
     ### Figure 1 ###
@@ -399,3 +453,14 @@ if __name__=="__main__":
     plot_engagement_percentage_change(sumup_df_4, figure_name='figure_5')
     print_statistics(sumup_df_4)
     export_data(sumup_df_4[['group_url', 'repeat_vs_free_percentage_change']], 'list_groups_sciencefeedback', 'groups_sciencefeedback_data')
+
+    ## Figure A ###
+
+    df_condor_new = import_data('condor_bz.csv', 'domains_condor_data')
+    df_condor_new = clean_buzzsumo_data(df_condor_new)
+    df_sf_new = df_sf_0[~df_sf_0['domain_name'].isin(df_condor_new['domain_name'].unique())]
+    df_websites = pd.concat([df_condor_new, df_sf_new])
+    plot_website_engagement_over_time(df=df_websites, figure_name='figure_A')
+
+    df_groups = pd.concat([df_posts_1, df_posts_2])
+    plot_group_engagement_over_time(df=df_groups, figure_name='figure_B')
