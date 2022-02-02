@@ -13,11 +13,13 @@ pd.options.mode.chained_assignment = None
 pd.set_option('use_inf_as_na', True)
 
 
-def clean_buzzsumo_data(df):
+def clean_buzzsumo_data(df, websites_to_exlude):
 
     df['date'] = [datetime.fromtimestamp(x).date() for x in df['published_date']]
     df['date'] = pd.to_datetime(df['date'])
     df = df.drop_duplicates(subset=['url'])
+
+    df = df[~df['domain_name'].isin(websites_to_exlude)]
             
     return df[['domain_name', 'date', 'total_facebook_shares', 'twitter_shares']]
 
@@ -381,12 +383,15 @@ if __name__=="__main__":
 
     ### Figure 1 ###
 
+    websites_to_exlude = import_data('excluded_websites.csv')
+    websites_to_exlude = websites_to_exlude['websites'].to_list()
+
     df1 = import_data('condor_bz_2.csv', 'domains_condor_data')
     df2 = import_data('condor_bz_3-4.csv', 'domains_condor_data')
     df3 = import_data('condor_bz_5+.csv', 'domains_condor_data')
 
     df_condor = pd.concat([df1, df2, df3])
-    df_condor = clean_buzzsumo_data(df_condor)
+    df_condor = clean_buzzsumo_data(df_condor, websites_to_exlude)
     df_condor = df_condor[df_condor['date']!=datetime.strptime('2021-03-01', '%Y-%m-%d')]
 
     df_url_condor = import_data('tpfc-recent-clean.csv', 'domains_condor_data')
@@ -401,7 +406,7 @@ if __name__=="__main__":
     ### Figure 2 ###
 
     df_sf_0 = import_data('sf_bz_2+.csv', 'domains_sciencefeedback_data')
-    df_sf_0 = clean_buzzsumo_data(df_sf_0)
+    df_sf_0 = clean_buzzsumo_data(df_sf_0, websites_to_exlude)
     df_sf = df_sf_0[~df_sf_0['domain_name'].isin(condor_domains)]
 
     df_url_sf = import_data('appearances_2021-10-21.csv', 'domains_sciencefeedback_data')
@@ -438,8 +443,6 @@ if __name__=="__main__":
     df_posts_2 = import_data('posts_repeat_offender_groups_2021-12-15.csv', folder='groups_sciencefeedback_data')
     df_posts_2 = df_posts_2[~df_posts_2['account_id'].isin(df_posts_1['account_id'].unique())]
     df_posts_2 = clean_crowdtangle_data(df_posts_2)
-    # df_posts_2 = df_posts_2[df_posts_2['date']!=datetime.strptime('2021-12-15', '%Y-%m-%d')]
-    # df_posts_2 = df_posts_2[df_posts_2['date']!=datetime.strptime('2021-12-14', '%Y-%m-%d')]
 
     df_url = import_data('appearances_2021-12-15.csv', folder='groups_sciencefeedback_data')
     df_url['date'] = pd.to_datetime(df_url['date'])
@@ -454,13 +457,15 @@ if __name__=="__main__":
     print_statistics(sumup_df_4)
     export_data(sumup_df_4[['group_url', 'repeat_vs_free_percentage_change']], 'list_groups_sciencefeedback', 'groups_sciencefeedback_data')
 
-    ## Figure A ###
+    ### Figure 6 ###
 
     df_condor_new = import_data('condor_bz.csv', 'domains_condor_data')
-    df_condor_new = clean_buzzsumo_data(df_condor_new)
+    df_condor_new = clean_buzzsumo_data(df_condor_new, websites_to_exlude)
     df_sf_new = df_sf_0[~df_sf_0['domain_name'].isin(df_condor_new['domain_name'].unique())]
     df_websites = pd.concat([df_condor_new, df_sf_new])
-    plot_website_engagement_over_time(df=df_websites, figure_name='figure_A')
+    plot_website_engagement_over_time(df=df_websites, figure_name='figure_6')
+
+    ### Figure 7 ###
 
     df_groups = pd.concat([df_posts_1, df_posts_2])
-    plot_group_engagement_over_time(df=df_groups, figure_name='figure_B')
+    plot_group_engagement_over_time(df=df_groups, figure_name='figure_7')
