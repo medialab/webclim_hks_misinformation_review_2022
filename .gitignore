@@ -13,3 +13,5 @@ __pycache__
 !data/groups_crowdtangle_search/list_reduced_posts.csv
 !data/groups_crowdtangle_search/list_groups_crowdtangle_search.csv
 !data/groups_sciencefeedback_data/list_groups_sciencefeedback.csv
+
+*.png
