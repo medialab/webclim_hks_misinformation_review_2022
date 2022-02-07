@@ -331,24 +331,24 @@ def plot_website_engagement_over_time(df, figure_name):
     ax = plt.subplot(111)
     plt.title("{} websites".format(df.domain_name.nunique()))
 
-    ax.plot(df.groupby(by=["date"])['total_facebook_shares'].mean(), color='royalblue')
-    ax.set_ylabel("Facebook engagement per article", color='royalblue')
+    ax.plot(df.groupby(by=["date", "domain_name"])['total_facebook_shares'].sum().groupby(by=['date']).mean(), color='royalblue')
+    ax.set_ylabel("Facebook engagement per day", color='royalblue')
     ax.tick_params(axis='y', colors='royalblue')
     plt.locator_params(axis='y', nbins=4)
     ax.grid(axis="y", color='royalblue')
     ax.set_frame_on(False)
     ax.set_zorder(10)
-    plt.ylim(bottom=-30, top=5000)
+    plt.ylim(bottom=-300)
 
     ax2 = ax.twinx()
-    ax2.plot(df.groupby(by=["date"])['twitter_shares'].mean(), color='deepskyblue')
-    ax2.set_ylabel("Twitter shares per article", color='deepskyblue')
+    ax2.plot(df.groupby(by=["date", "domain_name"])['twitter_shares'].sum().groupby(by=['date']).mean(), color='deepskyblue')
+    ax2.set_ylabel("Twitter shares per day", color='deepskyblue')
     ax2.tick_params(axis='y', colors='deepskyblue')
     plt.locator_params(axis='y', nbins=4)
     ax2.grid(axis="y", color='deepskyblue')
     ax2.set_frame_on(False)
     ax2.set_zorder(0)
-    plt.ylim(bottom=-1)
+    plt.ylim(bottom=-10)
 
     plt.xlim(np.datetime64('2019-05-01'), np.datetime64('2021-10-15'))
     plt.xticks([np.datetime64('2019-07-01'), np.datetime64('2020-01-01'), 
@@ -362,13 +362,13 @@ def plot_group_engagement_over_time(df, figure_name):
 
     plt.figure(figsize=(7, 2.5))
     ax = plt.subplot(111)
-    plt.plot(df.groupby(by=["date"])['engagement'].mean(), color='royalblue')
+    plt.plot(df.groupby(by=["date", "account_id"])['engagement'].sum().groupby(by=['date']).mean(), color='royalblue')
 
-    ax.set_ylabel("Facebook engagement per post", color='royalblue')
+    ax.set_ylabel("Facebook engagement per day", color='royalblue')
     plt.locator_params(axis='y', nbins=4)
     ax.tick_params(axis='y', colors='royalblue')
     ax.grid(axis="y", color='royalblue')
-    plt.ylim(bottom=-1)
+    plt.ylim(bottom=-40)
 
     plt.xlim(np.datetime64('2021-01-01'), np.datetime64('2021-12-10'))
     plt.xticks([np.datetime64('2021-02-01'), np.datetime64('2021-06-01'), np.datetime64('2021-10-01')])
