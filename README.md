@@ -13,7 +13,7 @@ python code/collect_bz_domain.py summary_condor_bz_3-4.csv condor_bz_3-4.csv dom
 python code/collect_bz_domain.py summary_condor_bz_2.csv condor_bz_2.csv domains_condor_data
 ```
 
-# Misinformation websites (Science Feedback data)
+#### Misinformation websites (Science Feedback data)
 
 ```
 python code/clean_sciencefeedback_data_for_domains.py 2021-10-21
@@ -49,9 +49,10 @@ python code/filter_repeat_offender_groups.py
 
 Again you should change the list id for the last comman if you want to replicate our method with your CrowdTangle account.
 
-## Figures
+## Create the figures
 
 To generate the figures from the data csv files, run:
 ```
 python code/create_figures.py
 ```
+The figures will appear in the `figure` folder.
