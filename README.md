@@ -1,4 +1,4 @@
-## Data collection
+## Collect data
 
 First configure a `.minetrc` file with a BuzzSumo and a CrowdTangle API token to be able to collect the data using the Python library minet.
 
