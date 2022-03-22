@@ -15,3 +15,5 @@ __pycache__
 !data/groups_sciencefeedback_data/list_groups_sciencefeedback.csv
 
 *.png
+
+.python-version
