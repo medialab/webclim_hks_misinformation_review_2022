@@ -1,5 +1,4 @@
 from datetime import datetime, timedelta
-import random
 
 import matplotlib.pyplot as plt
 import matplotlib.patches as mpatches
@@ -7,7 +6,7 @@ import pandas as pd
 import numpy as np
 import scipy.stats as stats
 
-from utils import import_data, save_figure, export_data
+from utils import import_data, save_figure, export_data, calculate_confidence_interval_median
 
 
 pd.options.mode.chained_assignment = None
@@ -81,7 +80,7 @@ def plot_example_ct_search_group(df_posts, df_dates, group_id):
     save_figure('figure_2_top')
 
 
-def calculate_engagement_percentage_change_for_groups(df_posts, df_dates):
+def calculate_engagement_percentage_change(df_posts, df_dates):
 
     sumup_df = pd.DataFrame(columns=[
         'group_id',
@@ -127,14 +126,20 @@ def calculate_engagement_percentage_change_for_groups(df_posts, df_dates):
     return sumup_df
 
 
-def calculate_confidence_interval_median(sample):
+def print_statistics(sumup_df):
 
-    medians = []
-    for bootstrap_index in range(1000):
-        resampled_sample = random.choices(sample, k=len(sample))
-        medians.append(np.median(resampled_sample))
+    print("Engagement percentage change for the 'Woke Shift' group:",
+        sumup_df[sumup_df['group_id']==3332382583652839]['percentage_change_engagement'].values[0]
+    )
 
-    return np.percentile(medians, 5), np.percentile(medians, 95)
+    print('\nSample size:', len(sumup_df))
+
+    print('Median engagement per post before:', np.median(sumup_df['engagement_before']))
+    print('Median engagement per post after:', np.median(sumup_df['engagement_after']))
+
+    print('Median engagement percentage change:', np.median(sumup_df['percentage_change_engagement']))
+    w, p = stats.wilcoxon(sumup_df['percentage_change_engagement'])
+    print('Wilcoxon test against zero: w =', w, ', p =', p)
 
 
 def plot_engagement_change(sumup_df):
@@ -191,22 +196,6 @@ def plot_engagement_change(sumup_df):
     save_figure('figure_2_bottom')
 
 
-def print_statistics(sumup_df):
-
-    print("Engagement percentage change for the 'Woke Shift' group:",
-        sumup_df[sumup_df['group_id']==3332382583652839]['percentage_change_engagement'].values[0]
-    )
-
-    print('\nSample size:', len(sumup_df))
-
-    print('Median engagement per post before:', np.median(sumup_df['engagement_before']))
-    print('Median engagement per post after:', np.median(sumup_df['engagement_after']))
-
-    print('Median engagement percentage change:', np.median(sumup_df['percentage_change_engagement']))
-    w, p = stats.wilcoxon(sumup_df['percentage_change_engagement'])
-    print('Wilcoxon test against zero: w =', w, ', p =', p)
-
-
 if __name__=="__main__":
 
     ### Figure 1 ###
@@ -225,7 +214,7 @@ if __name__=="__main__":
 
     plot_example_ct_search_group(df_posts, df_dates, group_id=3332382583652839)
 
-    sumup_df = calculate_engagement_percentage_change_for_groups(df_posts, df_dates)
-    plot_engagement_change(sumup_df)
+    sumup_df = calculate_engagement_percentage_change(df_posts, df_dates)
     print_statistics(sumup_df)
+    plot_engagement_change(sumup_df)
     export_data(sumup_df[['group_url', 'after_vs_before_percentage_change']], 'list_groups_crowdtangle_search', 'groups_crowdtangle_search')
