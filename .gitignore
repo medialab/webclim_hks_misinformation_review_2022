@@ -8,11 +8,17 @@ __pycache__
 *.csv
 *.csv#
 
+.DS_Store
+credentials.json
+
 !data/domains_condor_data/list_domains_condor.csv
 !data/domains_sciencefeedback_data/list_domains_sciencefeedback.csv
 !data/groups_crowdtangle_search/list_reduced_posts.csv
 !data/groups_crowdtangle_search/list_groups_crowdtangle_search.csv
 !data/groups_sciencefeedback_data/list_groups_sciencefeedback.csv
+!data/iffy/data.csv
+!data/iffy/platforms.csv
+!data/iffy/alt_platforms.csv
 
 *.png
 
