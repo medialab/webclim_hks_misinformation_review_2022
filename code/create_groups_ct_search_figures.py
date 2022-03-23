@@ -145,7 +145,7 @@ def print_statistics(sumup_df):
 def plot_engagement_change(sumup_df):
 
     fig, (ax0, ax1) = plt.subplots(1, 2, gridspec_kw={'width_ratios': [1, 5]})
-    fig.set_size_inches(8, 3)
+    fig.set_size_inches(8, 2.5)
 
     # Median engagements before or free VS after or repeat
     ax0.bar(
@@ -181,7 +181,7 @@ def plot_engagement_change(sumup_df):
         
     ax1.set_xlabel('Percentage change in engagement\n30 days after minus before the notification date')
     ax1.set_xlim(-110, 135)
-    ax1.set_ylim(-.2, 1.2)
+    ax1.set_ylim(-.1, 1.1)
 
     ax1.axvline(x=0, color='k', linestyle='--', linewidth=1)
     ax1.set_xticks(

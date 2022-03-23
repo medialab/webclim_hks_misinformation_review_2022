@@ -17,57 +17,30 @@ pd.options.mode.chained_assignment = None
 pd.set_option('use_inf_as_na', True)
 
 
-def clean_df_url_posts(df_url_posts):
-
-    df_url_posts = df_url_posts.dropna(subset=['url', 'account_id'])
-    df_url_posts['account_id'] = df_url_posts['account_id'].astype(int)
-
-    df_url_posts['datetime'] = pd.to_datetime(df_url_posts['datetime'])
-    df_url_posts = df_url_posts.sort_values(by=['datetime'], ascending=True)
-    df_url_posts = df_url_posts.drop_duplicates(subset=['url', 'account_id'])
-
-    df_url_posts['date'] = pd.to_datetime(df_url_posts['date'])
-    df_url_posts = df_url_posts[['url', 'account_id', 'date']]
-
-    return df_url_posts
-
-
-def infer_strike_dates_for_groups(df_url_posts, df_url, account_id):
-
-    df_url_posts_group = df_url_posts[df_url_posts['account_id'] == account_id]
-    strike_dates = []
-
-    for url in df_url_posts_group["url"].unique():
-        first_post_date = df_url_posts_group[df_url_posts_group['url'] == url]['date'].values[0]
-        fact_check_date = df_url[df_url['url_cleaned'] == url]['date'].values[0]
-        strike_date = np.max([np.datetime64(first_post_date), np.datetime64(fact_check_date)])
-        strike_dates.append(strike_date)
-
+def infer_strike_dates_for_domains(df_url, domain):
+    strike_dates = list(df_url[df_url['domain']==domain]['date'].values)
     strike_dates.sort()
-
     return strike_dates
 
 
-def plot_example_sf_data_group(df_posts, df_url_posts, df_url, group_id):
+def plot_example_condor_data_website(df, df_url, website_name):
 
     plt.figure(figsize=(8, 2.5))
     ax = plt.subplot(111)
 
-    df_posts_group = df_posts[df_posts['account_id']==group_id]
-    plt.title("The '" + df_posts_group['account_name'].values[0][:-3] + "' Facebook group")
+    df_website = df[df['domain_name']==website_name]
+    plt.title("The '" + website_name + "' website")
 
-    plt.plot(df_posts_group.groupby(by=["date"])['engagement'].mean(), color='royalblue')
-    ax.set_ylabel("Engagement per post")
-    plt.locator_params(axis='y', nbins=4)
-    ax.grid(axis="y")
+    plt.plot(df_website.groupby(by=["date"])['total_facebook_shares'].mean(), color='royalblue')
+    ax.set_ylabel("Engagement per article")
 
-    strike_dates = infer_strike_dates_for_groups(df_url_posts, df_url, group_id)
+    strike_dates = infer_strike_dates_for_domains(df_url, website_name)
     for date in strike_dates:
-        plt.plot([date, date], [-3, -0.3], color='C3')
+        plt.plot([date, date], [-3000, -300], color='C3')
     plt.text(
         s='Known strikes', color='C3', fontweight='bold',
-        x=np.datetime64('2021-07-15'), horizontalalignment='right', 
-        y=-1, verticalalignment='top'
+        x=np.datetime64('2020-06-01'), horizontalalignment='right', 
+        y=-600, verticalalignment='top'
     )
 
     repeat_offender_periods = infer_repeat_offender_periods(strike_dates)
@@ -77,57 +50,52 @@ def plot_example_sf_data_group(df_posts, df_url_posts, df_url, group_id):
     patch2 = mpatches.Patch(facecolor='white', alpha=0.4, edgecolor='k')
     legend = plt.legend([patch1, patch2], 
         ["Repeat offender periods\n(2 strikes in less than 90 days)", "Normal periods"],
-        loc='upper right', framealpha=1
+        loc='upper left', framealpha=1
     )
     legend.get_patches()[0].set_y(6)
 
     plt.text(
-        np.datetime64('2021-07-10'), 13, 'Percentage change = -30%', 
+        np.datetime64('2020-10-20'), 23000, 'Percentage change = -60%', 
         color='C3', ha='center', va='center'
     )
 
-    plt.xlim(np.datetime64('2021-01-01'), np.datetime64('2021-12-15'))
+    plt.xlim(np.datetime64('2019-01-01'), np.datetime64('2021-02-28'))
     plt.xticks([
-        np.datetime64('2021-01-01'), np.datetime64('2021-06-01'), 
-        np.datetime64('2021-11-01')
+        np.datetime64('2019-01-01'), np.datetime64('2020-01-01'), 
+        np.datetime64('2021-01-01')
     ])
     ax.tick_params(axis='x', which='both', length=0)
-    plt.ylim(-3, 30)
+    plt.ylim(-3000, 30000)
+    plt.locator_params(axis='y', nbins=4)
+    ax.grid(axis="y")
     ax.set_frame_on(False)
     plt.tight_layout()
-    save_figure('figure_3_top')
+    save_figure('figure_5_top')
 
 
-def calculate_engagement_percentage_change(df_posts, df_url_posts, df_url):
+def calculate_engagement_percentage_change_for_domains(df, df_url):
 
     sumup_df = pd.DataFrame(columns=[
-        'group_id',
-        'group_name',
-        'group_url', 
-        'engagement_normal', 
-        'engagement_repeat'
+        'domain_name',
+        'engagement_repeat', 
+        'engagement_normal'
     ])
 
-    for group_id in df_posts['account_id'].unique():
+    for domain in df['domain_name'].unique():
 
-        df_posts_group = df_posts[df_posts["account_id"] == group_id]
-        group_name = df_posts_group['account_name'].unique()[0]
-        group_url = df_posts_group['account_url'].unique()[0]
+        df_domain = df[df['domain_name'] == domain]
 
-        strike_dates = infer_strike_dates_for_groups(df_url_posts, df_url, group_id)
+        strike_dates = infer_strike_dates_for_domains(df_url, domain)
         repeat_offender_periods = infer_repeat_offender_periods(strike_dates)
 
-        normal_df = keep_free_data(df_posts_group, repeat_offender_periods)
-        repeat_df = keep_repeat_offender_data(df_posts_group, repeat_offender_periods)
+        free_df = keep_free_data(df_domain, repeat_offender_periods)
+        repeat_offender_df = keep_repeat_offender_data(df_domain, repeat_offender_periods)
 
-        if (len(normal_df) > 0) & (len(repeat_df) > 0):
-            
+        if (len(repeat_offender_df) > 0) & (len(free_df) > 0): 
             sumup_df = sumup_df.append({
-                'group_id': group_id,
-                'group_name': group_name, 
-                'group_url': group_url,
-                'engagement_normal': np.mean(normal_df['engagement']),
-                'engagement_repeat': np.mean(repeat_df['engagement']),
+                'domain_name': domain,
+                'engagement_repeat': np.mean(repeat_offender_df['total_facebook_shares']),
+                'engagement_normal': np.mean(free_df['total_facebook_shares']),
             }, ignore_index=True)
             
     sumup_df['percentage_change_engagement'] = ((sumup_df['engagement_repeat'] - sumup_df['engagement_normal'])/
@@ -140,10 +108,6 @@ def calculate_engagement_percentage_change(df_posts, df_url_posts, df_url):
 
 def print_statistics(sumup_df):
 
-    print("Engagement percentage change for the 'Build The Wall' group:",
-        sumup_df[sumup_df['group_id']==1869250196644008]['percentage_change_engagement'].values[0]
-    )
-
     print('\nSample size:', len(sumup_df))
 
     print('Median engagement per post normal:', np.median(sumup_df['engagement_normal']))
@@ -154,7 +118,7 @@ def print_statistics(sumup_df):
     print('Wilcoxon test against zero: w =', w, ', p =', p)
 
 
-def plot_engagement_change(sumup_df):
+def plot_engagement_change(sumup_df, data):
 
     fig, (ax0, ax1) = plt.subplots(1, 2, gridspec_kw={'width_ratios': [1, 5]})
     fig.set_size_inches(8, 2.5)
@@ -175,8 +139,7 @@ def plot_engagement_change(sumup_df):
     ax0.set_xticks([-0.08, 1.08], ["Normal\nperiods", "Repeat\noffender\nperiods"])
     ax0.tick_params(axis='x', which='both', length=0)
     ax0.set_xlim(-.5, 1.5)
-    ax0.set_ylabel('Median engagement per post')
-    ax0.set_ylim(-.1, 11.5)
+    ax0.set_ylabel('Median engagement per article')
     ax0.set_frame_on(False)
 
     # Percentage change in engagement
@@ -201,33 +164,54 @@ def plot_engagement_change(sumup_df):
     )
     ax1.set_yticks([])
     ax1.set_frame_on(False)
-    plt.title("{} misinformation Facebook groups (Science Feedback data)".format(len(sumup_df)), loc='left')
 
-    fig.tight_layout()
-    save_figure('figure_3_bottom')
+    if data == 'condor':
+        ax0.set_ylim(-10, 1400)
+        plt.title("{} misinformation websites (Condor data)".format(len(sumup_df)), loc='left')
+        fig.tight_layout()
+        save_figure('figure_5_middle')
+    elif data == 'sf':
+        ax0.set_ylim(-2, 65)
+        plt.title("{} misinformation websites (Science Feedback data)".format(len(sumup_df)), loc='left')
+        fig.tight_layout()
+        save_figure('figure_5_bottom')
 
 
 if __name__=="__main__":
 
-    ### Figure 3 ###
+    ### Figure 5 ###
 
     ### top panel ###
 
-    df_posts = import_data('posts_smaller.csv', folder='groups_sciencefeedback_data')
-    df_posts['date'] = pd.to_datetime(df_posts['date'])
+    df_condor = import_data('condor_bz_smaller.csv', 'domains_condor_data')
+    df_condor['date'] = pd.to_datetime(df_condor['date'])
 
-    df_url = import_data('appearances_2021-12-15.csv', folder='groups_sciencefeedback_data')
-    df_url['date'] = pd.to_datetime(df_url['date'])
+    df_url_condor = import_data('tpfc-recent-clean.csv', 'domains_condor_data')
+    df_url_condor['date'] = pd.to_datetime(df_url_condor['tpfc_first_fact_check'])
 
-    df_url_posts = import_data('posts_url_2021-12-15.csv', folder='groups_sciencefeedback_data')
-    df_url_posts = clean_df_url_posts(df_url_posts)
+    plot_example_condor_data_website(df_condor, df_url_condor, website_name='100percentfedup.com')
 
-    plot_example_sf_data_group(df_posts, df_url_posts, df_url, group_id=1869250196644008)
-    
+    ### middle panel ###
+
+    sumup_df_1 = calculate_engagement_percentage_change_for_domains(df=df_condor, df_url=df_url_condor)
+    print("Engagement percentage change for the '100percentfedup.com' website:",
+        sumup_df_1[sumup_df_1['domain_name']=='100percentfedup.com']['percentage_change_engagement'].values[0]
+    )
+    print_statistics(sumup_df_1)
+    plot_engagement_change(sumup_df_1, data='condor')
+    # export_data(sumup_df_1[['domain_name', 'repeat_vs_free_percentage_change']], 'list_domains_condor', 'domains_condor_data')
+    condor_domains = list(sumup_df_1['domain_name'].unique())
+
     ### bottom panel ###
 
-    sumup_df = calculate_engagement_percentage_change(df_posts, df_url_posts, df_url)
-    print_statistics(sumup_df)
+    df_sf_0 = import_data('sf_bz_smaller.csv', 'domains_sciencefeedback_data')
+    df_sf = df_sf_0[~df_sf_0['domain_name'].isin(condor_domains)]
+    df_sf['date'] = pd.to_datetime(df_sf['date'])
 
-    plot_engagement_change(sumup_df)
-    # export_data(sumup_df[['group_url', 'repeat_vs_free_percentage_change']], 'list_groups_sciencefeedback', 'groups_sciencefeedback_data')
+    df_url_sf = import_data('appearances_2021-10-21.csv', 'domains_sciencefeedback_data')
+    df_url_sf['date'] = pd.to_datetime(df_url_sf['Date of publication'])
+
+    sumup_df_2 = calculate_engagement_percentage_change_for_domains(df=df_sf, df_url=df_url_sf)
+    print_statistics(sumup_df_2)
+    plot_engagement_change(sumup_df_2, data='sf')
+    # export_data(sumup_df_2[['domain_name', 'repeat_vs_free_percentage_change']], 'list_domains_sciencefeedback', 'domains_sciencefeedback_data')
