@@ -75,11 +75,17 @@ def get_domain_names (remove_platforms):
     df = df.dropna(subset = ['caption'])
     #print('length df after nan caption', len(df))
 
-    df1 = import_google_sheet ('domain_names_rating')
-    df1 = df1.replace(r'^\s*$', np.nan, regex=True)
+    # df1 = import_google_sheet ('domain_names_rating')
+    # df1 = df1.replace(r'^\s*$', np.nan, regex=True)
+    #
+    # list_platforms = df1[df1['category'].isin(['platform'])]['domain_name'].unique().tolist()
+    # list_alt_platforms = df1[df1['category'].isin(['alternative_platform'])]['domain_name'].unique().tolist()
 
-    list_platforms = df1[df1['category'].isin(['platform'])]['domain_name'].unique().tolist()
-    list_alt_platforms = df1[df1['category'].isin(['alternative_platform'])]['domain_name'].unique().tolist()
+    df_plat = import_data('platforms.csv', folder = 'iffy')
+    list_platforms = df_plat['domain_name'].tolist()
+
+    df_alt_plat = import_data('alt_platforms.csv', folder = 'iffy')
+    list_alt_platforms = df_plat['domain_name'].tolist()
 
     if remove_platforms == 1:
 
@@ -96,17 +102,18 @@ def get_domain_names (remove_platforms):
 
 def get_domains_ratings (df_domains):
 
-    df1 = import_google_sheet ('domain_names_rating')
-    df1 = df1.replace(r'^\s*$', np.nan, regex=True)
+    # df1 = import_google_sheet ('domain_names_rating')
+    # df1 = df1.replace(r'^\s*$', np.nan, regex=True)
 
     df2 = import_data('data.csv', folder = 'iffy')
     df2 = df2.rename(columns={'Domain': 'domain_name', 'MBFC factual': 'MBFC_factual'})
 
     df3 = df_domains
-    df3['aggregated_rating'] = ''
-    df3.set_index('domain_name', inplace = True)
-    df3.update(df1.set_index('domain_name'))
-    df3 = df3.reset_index()
+
+    # df3['aggregated_rating'] = ''
+    # df3.set_index('domain_name', inplace = True)
+    # df3.update(df1.set_index('domain_name'))
+    # df3 = df3.reset_index()
 
     df3['MBFC_factual'] = ''
     df3.set_index('domain_name', inplace = True)
@@ -115,7 +122,7 @@ def get_domains_ratings (df_domains):
 
 
     df3['MBFC_factual'] = df3['MBFC_factual'].replace('','unrated')
-    df3['aggregated_rating'] = df3['aggregated_rating'].replace('','unrated')
+    #df3['aggregated_rating'] = df3['aggregated_rating'].replace('','unrated')
 
     return df3
 
@@ -124,19 +131,22 @@ def get_domains_categories ():
     df1 = import_google_sheet ('domain_names_rating')
     df1 = df1.replace(r'^\s*$', np.nan, regex=True)
 
-    list_platforms = df1[df1['category'].isin(['platform'])]['domain_name'].unique().tolist()
-    list_alt_platforms = df1[df1['category'].isin(['alternative_platform'])]['domain_name'].unique().tolist()
-    #print(list_platforms)
-    #print(list_alt_platforms)
-    df_platforms = pd.DataFrame(columns=['domain_name'])
-    #df_platforms['category'] = 'platform'
-    df_platforms['domain_name'] = list_platforms
-    save_data(df_platforms, 'platforms.csv', 0)
+    # list_platforms = df1[df1['category'].isin(['platform'])]['domain_name'].unique().tolist()
+    # list_alt_platforms = df1[df1['category'].isin(['alternative_platform'])]['domain_name'].unique().tolist()
+    #
+    # df_platforms = pd.DataFrame(columns=['domain_name'])
+    # df_platforms['domain_name'] = list_platforms
+    # save_data(df_platforms, 'platforms.csv', 0)
+    #
+    # df_alt_platforms = pd.DataFrame(columns=['domain_name'])
+    # df_alt_platforms['domain_name'] = list_alt_platforms
+    # save_data(df_alt_platforms, 'alt_platforms.csv', 0)
 
-    df_alt_platforms = pd.DataFrame(columns=['domain_name'])
-    #df_alt_platforms['category'] = 'alternative_platform'
-    df_alt_platforms['domain_name'] = list_alt_platforms
-    save_data(df_platforms, 'alt_platforms.csv', 0)
+    df_plat = import_data('platforms.csv', folder = 'iffy')
+    list_platforms = df_plat['domain_name'].tolist()
+
+    df_alt_plat = import_data('alt_platforms.csv', folder = 'iffy')
+    list_alt_platforms = df_alt_plat['domain_name'].tolist()
 
     col_list = ['actual_like_count',
                'actual_share_count',
@@ -165,25 +175,31 @@ def get_percentage_change_rating (df_domains, df_dates, days):
 
     df =  get_domains_ratings (df_domains)
 
-    rating = 'aggregated_rating'
+    #rating = 'aggregated_rating'
     rating_iffy = 'MBFC_factual'
 
     df_percentage_rating = pd.DataFrame(columns=['account_id',
                                                  'account_name',
                                                 'total_nb_links',
-                                                'total_with_rating',
-                                                'rating_negative_iffy',
-                                                'percentage_negative_iffy',
+                                                #'total_with_rating',
+                                                'total_rated_negative_iffy',
+                                                #'percentage_negative_iffy',
                                                 'nb_neg_iffy_before',
                                                 'nb_neg_iffy_after',
                                                 'variation_rate_nb_negative_iffy',
+                                                'total_nb_links_before',
+                                                'total_nb_links_after',
+                                                'nb_links_before_mean_30_days',
+                                                'nb_links_after_mean_30_days',
+                                                'share_iffy_links_before',
+                                                'share_iffy_links_after',
                                                 'account_subscriber_count'])
 
 
     remove = ['unrated', '(satire)']
-    positive = ['high', 'very-high', 'mostly-factual']
+    #positive = ['high', 'very-high', 'mostly-factual']
     negative = ['low', 'very-low']
-    mixed = ['mixed']
+    #mixed = ['mixed']
 
     print('total account_names with rated domains', len(df['account_name'].unique()))
 
@@ -198,19 +214,19 @@ def get_percentage_change_rating (df_domains, df_dates, days):
 
         total_nb_links = len(df_user)
 
-        df_user = df_user[~df_user[rating].isin(remove)]
+        #df_user = df_user[~df_user[rating].isin(remove)]
 
-        total_with_rating = df_user[rating].count()
+        #total_with_rating = df_user[rating].count()
 
-        rating_negative_iffy = df_user[df_user[rating_iffy].isin(negative)][rating_iffy].count()
+        total_rated_negative_iffy = df_user[df_user[rating_iffy].isin(negative)][rating_iffy].count()
 
-        if total_with_rating > 0:
-
-            percentage_negative_iffy = round((rating_negative_iffy / total_with_rating)*100, 2)
-
-        else:
-
-            percentage_negative_iffy = 0
+        # if total_with_rating > 0:
+        #
+        #     percentage_negative_iffy = round((rating_negative_iffy / total_with_rating)*100, 2)
+        #
+        # else:
+        #
+        #     percentage_negative_iffy = 0
 
         reduced_distribution_date = df_dates[df_dates['account_id'] == user]['post_date'].values[0]
         reduced_distribution_date = datetime.strptime(str(reduced_distribution_date)[:10], '%Y-%m-%d')
@@ -224,6 +240,12 @@ def get_percentage_change_rating (df_domains, df_dates, days):
         (df_user['date'] > reduced_distribution_date) &
         (df_user['date'] <= reduced_distribution_date + timedelta(days=days))
         ]
+
+        total_nb_links_before = len(before_df)
+        total_nb_links_after = len(after_df)
+
+        nb_links_before_mean_30_days = round(len(before_df)/30)
+        nb_links_after_mean_30_days = round(len(after_df)/30)
 
         total_with_rating_before_iffy = before_df[rating_iffy].count()
         total_with_rating_after_iffy = after_df[rating_iffy].count()
@@ -239,16 +261,32 @@ def get_percentage_change_rating (df_domains, df_dates, days):
         else:
             change_share_negative_iffy = 0
 
+        if total_nb_links_before > 0 :
+            share_iffy_links_before = round(100*(nb_neg_iffy_before / total_nb_links_before))
+        else :
+            share_iffy_links_before = 0
+
+        if total_nb_links_after > 0 :
+            share_iffy_links_after = round(100*(nb_neg_iffy_after / total_nb_links_after))
+        else :
+            share_iffy_links_after = 0
+
         df_percentage_rating = df_percentage_rating.append({
                     'account_id': user,
                     'account_name': account_name,
                     'total_nb_links': total_nb_links,
-                    'total_with_rating': total_with_rating,
-                    'rating_negative_iffy': rating_negative_iffy,
-                    'percentage_negative_iffy': percentage_negative_iffy,
+                    #'total_with_rating': total_with_rating,
+                    'total_rated_negative_iffy': total_rated_negative_iffy,
+                    #'percentage_negative_iffy': percentage_negative_iffy,
                     'nb_neg_iffy_before': nb_neg_iffy_before ,
                     'nb_neg_iffy_after': nb_neg_iffy_after ,
                     'variation_rate_nb_negative_iffy': change_share_negative_iffy,
+                    'total_nb_links_before': total_nb_links_before,
+                    'total_nb_links_after': total_nb_links_after,
+                    'nb_links_before_mean_30_days': nb_links_before_mean_30_days,
+                    'nb_links_after_mean_30_days': nb_links_after_mean_30_days,
+                    'share_iffy_links_before': share_iffy_links_before,
+                    'share_iffy_links_after': share_iffy_links_after,
                     'account_subscriber_count': account_subscriber_count}, ignore_index=True)
 
     timestr = time.strftime('%Y_%m_%d')
@@ -393,6 +431,8 @@ def get_percentage_change_posts (df_dates, days):
                                                 'total_nb_posts_before',
                                                 'total_nb_posts_after',
                                                 'variation_rate_nb_posts',
+                                                'nb_posts_before_mean_30_days',
+                                                'nb_posts_after_mean_30_days',
                                                 'account_subscriber_count',
                                                ])
 
@@ -423,6 +463,8 @@ def get_percentage_change_posts (df_dates, days):
         total_nb_posts_before = len(before_df)
         total_nb_posts_after = len(after_df)
 
+        nb_posts_before_mean_30_days = (total_nb_posts_before / 30)
+        nb_posts_after_mean_30_days = (total_nb_posts_after / 30)
 
         if total_nb_posts_before > 0 :
             a = (100*((total_nb_posts_after - total_nb_posts_before)/ total_nb_posts_before))
@@ -438,6 +480,8 @@ def get_percentage_change_posts (df_dates, days):
                     'total_nb_posts_before': total_nb_posts_before,
                     'total_nb_posts_after': total_nb_posts_after,
                     'variation_rate_nb_posts': variation_rate_nb_posts,
+                    'nb_posts_before_mean_30_days': nb_posts_before_mean_30_days,
+                    'nb_posts_after_mean_30_days': nb_posts_after_mean_30_days,
                     'account_subscriber_count': account_subscriber_count,
                     }, ignore_index=True)
 
@@ -454,7 +498,7 @@ def get_df ():
     df_change_category = get_percentage_change_categories (df_dates = get_first_strike_date(),
                                                            days = 30)
 
-    df_change_rating = get_percentage_change_rating (df_domains = get_domain_names (remove_platforms = 1),
+    df_change_rating = get_percentage_change_rating (df_domains = get_domain_names (remove_platforms = 0),
                                                      df_dates = get_first_strike_date(),
                                                      days = 30)
 
@@ -617,63 +661,173 @@ def get_median_behavioral_metrics():
 
     df_stat['variable'] = ['nb_iffy_links',
                            'nb_of_posts_with_alt_plat',
+                           'nb_of_posts_with_plat',
                            'nb_of_posts_with_links',
                            'nb_of_posts',
-                           'nb_of_posts_with_plat']
+                           'nb_posts_mean_30_days',
+                           'nb_posts_with_links_mean_30_days',
+                           'share_iffy_links_30_days_over_total']
 
     df_stat['median 30 days before'] = [df1['nb_neg_iffy_before'].median(),
                                         df3['nb_alt_platform_links_before'].median(),
+                                        df3['nb_platform_links_before'].median(),
                                         df3['total_nb_links_before'].median(),
                                         df2['total_nb_posts_before'].median(),
-                                        df3['nb_platform_links_before'].median()]
+                                        df2['nb_posts_before_mean_30_days'].median(),
+                                        df1['nb_links_before_mean_30_days'].median(),
+                                        df1['share_iffy_links_before'].median()]
 
     df_stat['median 30 days after'] = [df1['nb_neg_iffy_after'].median(),
                                        df3['nb_alt_platform_links_after'].median(),
+                                       df3['nb_platform_links_after'].median(),
                                        df3['total_nb_links_after'].median(),
                                        df2['total_nb_posts_after'].median(),
-                                       df3['nb_platform_links_after'].median()]
+                                       df2['nb_posts_after_mean_30_days'].median(),
+                                       df1['nb_links_after_mean_30_days'].median(),
+                                       df1['share_iffy_links_after'].median()]
 
     w1, p1 = stats.wilcoxon(df1['nb_neg_iffy_before'].tolist(),
                             df1['nb_neg_iffy_after'].tolist())
+
     w2, p2 = stats.wilcoxon(df3['nb_alt_platform_links_before'].tolist(),
                             df3['nb_alt_platform_links_after'].tolist())
-    w3, p3 = stats.wilcoxon(df3['total_nb_links_before'].tolist(),
-                            df3['total_nb_links_after'].tolist())
-    w4, p4 = stats.wilcoxon(df2['total_nb_posts_before'].tolist(),
-                            df2['total_nb_posts_after'].tolist())
-    w5, p5 = stats.wilcoxon(df3['nb_platform_links_before'].tolist(),
+
+    w3, p3 = stats.wilcoxon(df3['nb_platform_links_before'].tolist(),
                             df3['nb_platform_links_after'].tolist())
 
-    df_stat['wilcoxon'] = [p1, p2, p3, p4, p5]
+    w4, p4 = stats.wilcoxon(df3['total_nb_links_before'].tolist(),
+                            df3['total_nb_links_after'].tolist())
 
-    df_plot1 = df_stat[~df_stat['variable'].isin(['nb_of_posts', 'nb_of_posts_with_links'])]
-    df_plot2 = df_stat[df_stat['variable'].isin(['nb_of_posts', 'nb_of_posts_with_links'])]
+    w5, p5 = stats.wilcoxon(df2['total_nb_posts_before'].tolist(),
+                            df2['total_nb_posts_after'].tolist())
+    print('Wilcoxon, p-value, nb of posts any kind over 30 days', w5, p5)
 
+    w6, p6 = stats.wilcoxon(df2['nb_posts_before_mean_30_days'].tolist(),
+                            df2['nb_posts_after_mean_30_days'].tolist())
+    print('Wilcoxon, p-value, average nb of posts any kind over 30 days', w6, p6)
+
+    w7, p7 = stats.wilcoxon(df1['nb_links_before_mean_30_days'].tolist(),
+                            df1['nb_links_after_mean_30_days'].tolist())
+    print('Wilcoxon, p-value, average nb of posts with links over 30 days', w7, p7)
+
+    w8, p8 = stats.wilcoxon(df1['share_iffy_links_before'].tolist(),
+                            df1['share_iffy_links_after'].tolist())
+    print('Wilcoxon, p-value, share of iffy links among posts with links', w8, p8)
+    df_stat['wilcoxon'] = [p1, p2, p3, p4, p5, p6, p7, p8]
+
+    df_plot1 = df_stat[~df_stat['variable'].isin([
+                           'nb_posts_mean_30_days',
+                           'nb_posts_with_links_mean_30_days',
+                           'share_iffy_links_30_days_over_total'])]
+
+    df_plot2 = df_stat[df_stat['variable'].isin(['nb_posts_mean_30_days',
+                                                'nb_posts_with_links_mean_30_days',
+                                                'share_iffy_links_30_days_over_total'])]
     return df_stat, df_plot1, df_plot2
+
+def calculate_confidence_interval_median(sample):
+
+    medians = []
+    for bootstrap_index in range(1000):
+        resampled_sample = random.choices(sample, k=len(sample))
+        medians.append(np.median(resampled_sample))
+
+    return np.percentile(medians, 5), np.percentile(medians, 95)
+
+
+def plot_engagement_change(df1, df2):
+
+    fig, (ax0, ax1) = plt.subplots(1, 2, gridspec_kw={'width_ratios': [1, 1]})
+    fig.set_size_inches(5, 3)
+
+    # Median nb of posts before VS after
+    ax0.bar(
+        [0.1], [np.median(df2['nb_posts_before_mean_30_days'])],
+        color='springgreen', edgecolor='black', width=0.8, alpha=0.4
+    )
+    ax0.bar(
+        [0.9], [np.median(df2['nb_posts_after_mean_30_days'])],
+        color='gold', edgecolor='black', width=0.8, alpha=0.4
+    )
+    low_before, high_before = calculate_confidence_interval_median(df2['nb_posts_before_mean_30_days'].values)
+    ax0.plot([0.1, 0.1], [low_before, high_before], color='black', linewidth=0.9)
+    low_after, high_after = calculate_confidence_interval_median(df2['nb_posts_after_mean_30_days'].values)
+    ax0.plot([0.9, 0.9], [low_after, high_after], color='black', linewidth=0.9)
+    ax0.set_xticks([0, 1]),
+    ax0.set_xticklabels(['30 days \n before', '30 days \n after'])
+    ax0.set_xlabel('the notification date')
+    ax0.tick_params(axis='x', which='both', length=0)
+    ax0.set_xlim(-.5, 1.5)
+    ax0.set_ylabel('Median of posts per day')
+    ax0.set_ylim(-.1, 15)
+    ax0.set_yticks([0, 5, 10, 15, 20])
+    ax0.set_frame_on(False)
+
+    #    # Median engagements before or free VS after or repeat
+    ax1.bar(
+        [0.1], [np.median(df1['share_iffy_links_before'])],
+        color='springgreen', edgecolor='black', width=0.8, alpha=0.4
+    )
+    ax1.bar(
+        [0.9], [np.median(df1['share_iffy_links_before'])],
+        color='gold', edgecolor='black', width=0.8, alpha=0.4
+    )
+    low_before, high_before = calculate_confidence_interval_median(df1['share_iffy_links_before'].values)
+    ax1.plot([0.1, 0.1], [low_before, high_before], color='black', linewidth=0.9)
+    low_after, high_after = calculate_confidence_interval_median(df1['share_iffy_links_before'].values)
+    ax1.plot([0.9, 0.9], [low_after, high_after], color='black', linewidth=0.9)
+    #ax1.set_xticks([0, 1], ['30 days \n before', '30 days \n after'])
+    ax1.set_xticks([0, 1]),
+    ax1.set_xticklabels(['30 days \n before', '30 days \n after'])
+    #ax1.set_xticklabels(
+    #labels = ['30 days\nbefore', '30 days\nafter'])
+    ax1.set_xlabel('the notification date')
+    ax1.tick_params(axis='x', which='both', length=0)
+    ax1.set_xlim(-.5, 1.5)
+    ax1.set_ylabel('Median share of links \n rated low or very-low')
+    ax1.set_ylim(-.1, 20)
+    ax1.set_frame_on(False)
+
+
+    # Percentage change in engagement
+
+    fig.suptitle("{} Facebook groups \n self-declared as being under reduced distribution".format(len(df1)))
+    #fig.suptitle
+    fig.tight_layout()
+    save_figure('figure_post_links')
 
 def bar_template(ax):
 
     ax.set_frame_on(False)
     ax.set(xlabel=None)
+    ax.axes.get_yaxis().set_visible(False)
 
     for p in ax.patches:
         a = round(p.get_height())
-        ax.annotate(a, (p.get_x()+p.get_width()/2. - 0.07, p.get_height()))
+        ax.annotate(a, (p.get_x()+p.get_width()/2. - 0.04, p.get_height()))
+
+        if a == 10:
+            a = str(a) + '%'
+            ax.annotate(a, (p.get_x()+p.get_width()/2. - 0.04, p.get_height()))
 
 def plot_bars(iffy, df):
 
     if iffy == 1:
         fig, ax = plt.subplots()
-        fig.set_size_inches(6, 3)
+        fig.set_size_inches(8, 3)
         pvalues = df['wilcoxon'].tolist()
 
         df.plot.bar(x = 'variable', y = ['median 30 days before', 'median 30 days after'], rot = 360, ax = ax, color = ['springgreen', 'gold'], width = 0.8, edgecolor='black', alpha=0.4)
         ax.set_xticklabels(
         labels = ['Nb of posts with \n Iffy links \n \n (p-value={})'.format(round(pvalues[0],3)) ,
         'Nb of posts with \n alt. platform links \n \n(p-value={})'.format(round(pvalues[1],3)),
-        'Nb of posts with \n platform links\n \n(p-value={})'.format(round(pvalues[2],3))])
-        ax.set_yticks([0, 5, 10, 15, 20])
-        ax.set_ylim(-.1, 20)
+        'Nb of posts with \n platform links\n \n(p-value={})'.format(round(pvalues[2],3)),
+        'Nb of posts \n with links\n \n (p-value={})'.format(round(pvalues[3],3)),
+        'Nb of posts \n all kind \n \n (p-value={})'.format(round(pvalues[4],3))])
+
+        #ax.set_yticks([0, 5, 10, 15, 20])
+        #ax.set_yticks()
+        ax.set_ylim(-.1, 500)
         bar_template(ax)
 
         save_figure('iffy_links_wilcoxon')
@@ -681,27 +835,39 @@ def plot_bars(iffy, df):
     elif iffy == 0:
 
         fig, ax = plt.subplots()
-        fig.set_size_inches(6, 3)
+        fig.set_size_inches(8, 3)
         pvalues = df['wilcoxon'].tolist()
 
-        df.plot.bar(x = 'variable', y = ['median 30 days before', 'median 30 days after'], rot = 360, ax = ax, color = ['springgreen', 'gold'], width=0.8, edgecolor='black', alpha=0.4)
+        df.plot.bar(x = 'variable', y = ['median 30 days before', 'median 30 days after'], rot = 360, ax = ax, color = ['springgreen', 'gold'], width=0.4, edgecolor='black', alpha=0.4)
+        # ax.set_xticklabels(
+        # labels = [
+        # 'Number of posts per day \n any kind \n \n (p-value={})'.format(round(pvalues[0],3)),
+        # 'Number of posts per day \n containing a link \n \n (p-value={})'.format(round(pvalues[1],3)),
+        # 'Share of "Iffy links" \n among posts containing links \n \n (p-value={})'.format(round(pvalues[2],3))])
+
         ax.set_xticklabels(
-        labels = ['Nb of posts \n with links\n \n (p-value={})'.format(round(pvalues[0],3)),
-        'Nb of posts \n all kind \n \n (p-value={})'.format(round(pvalues[1],3))])
+        labels = [
+        'Number of posts per day',
+        'Number of posts per day \n containing a link',
+        'Share of "Iffy links" \n among posts containing links'])
 
-        ax.set_ylim(-5, 450)
+        #ax.set_yticks()
+        ax.set_ylim(-.1, 20)
         bar_template(ax)
-
+        ax.legend(labels = ['Median, 30-day period before the notification date', 'Median, 30-day period after the notification date'])
         save_figure('posts_wilcoxon')
 
 def main():
 
-    df_change_rating, df_change_category, df_change_posts = get_df()
-    df_stat, df_plot1, df_plot2 = get_median_behavioral_metrics()
-
-    plot_figures()
-    plot_bars(iffy = 1, df = df_plot1 )
-    plot_bars(iffy = 0, df = df_plot2 )
+    #df_change_rating, df_change_category, df_change_posts = get_df()
+    #df_stat, df_plot1, df_plot2 = get_median_behavioral_metrics()
+    timestr = time.strftime('%Y_%m_%d')
+    df1 = import_data('change_percentage_rating_agg_' + timestr +'.csv', folder = 'iffy')
+    df2 = import_data('change_percentage_posts_' + timestr +'.csv', folder = 'iffy')
+    plot_engagement_change(df1, df2)
+    #plot_figures()
+    #plot_bars(iffy = 1, df = df_plot1 )
+    #plot_bars(iffy = 0, df = df_plot2 )
 
 
 if __name__=="__main__":
