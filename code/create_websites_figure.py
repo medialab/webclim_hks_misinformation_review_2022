@@ -7,7 +7,7 @@ import numpy as np
 import scipy.stats as stats
 
 from utils import (
-    import_data, save_figure, export_data, 
+    import_data, save_figure, export_data,
     calculate_confidence_interval_median, infer_repeat_offender_periods,
     keep_repeat_offender_data, keep_free_data
 )
@@ -39,7 +39,7 @@ def plot_example_condor_data_website(df, df_url, website_name):
         plt.plot([date, date], [-3000, -300], color='C3')
     plt.text(
         s='Known strikes', color='C3', fontweight='bold',
-        x=np.datetime64('2020-06-01'), horizontalalignment='right', 
+        x=np.datetime64('2020-06-01'), horizontalalignment='right',
         y=-600, verticalalignment='top'
     )
 
@@ -48,20 +48,20 @@ def plot_example_condor_data_website(df, df_url, website_name):
         plt.axvspan(period[0], period[1], ymin=1/11, facecolor='C3', alpha=0.1)
     patch1 = mpatches.Patch(facecolor='pink', alpha=0.4, edgecolor='k')
     patch2 = mpatches.Patch(facecolor='white', alpha=0.4, edgecolor='k')
-    legend = plt.legend([patch1, patch2], 
+    legend = plt.legend([patch1, patch2],
         ["Repeat offender periods\n(2 strikes in less than 90 days)", "Normal periods"],
         loc='upper left', framealpha=1
     )
     legend.get_patches()[0].set_y(6)
 
     plt.text(
-        np.datetime64('2020-10-20'), 23000, 'Percentage change = -60%', 
+        np.datetime64('2020-10-20'), 23000, 'Percentage change = -60%',
         color='C3', ha='center', va='center'
     )
 
     plt.xlim(np.datetime64('2019-01-01'), np.datetime64('2021-02-28'))
     plt.xticks([
-        np.datetime64('2019-01-01'), np.datetime64('2020-01-01'), 
+        np.datetime64('2019-01-01'), np.datetime64('2020-01-01'),
         np.datetime64('2021-01-01')
     ])
     ax.tick_params(axis='x', which='both', length=0)
@@ -77,7 +77,7 @@ def calculate_engagement_percentage_change_for_domains(df, df_url):
 
     sumup_df = pd.DataFrame(columns=[
         'domain_name',
-        'engagement_repeat', 
+        'engagement_repeat',
         'engagement_normal'
     ])
 
@@ -91,13 +91,13 @@ def calculate_engagement_percentage_change_for_domains(df, df_url):
         free_df = keep_free_data(df_domain, repeat_offender_periods)
         repeat_offender_df = keep_repeat_offender_data(df_domain, repeat_offender_periods)
 
-        if (len(repeat_offender_df) > 0) & (len(free_df) > 0): 
+        if (len(repeat_offender_df) > 0) & (len(free_df) > 0):
             sumup_df = sumup_df.append({
                 'domain_name': domain,
                 'engagement_repeat': np.mean(repeat_offender_df['total_facebook_shares']),
                 'engagement_normal': np.mean(free_df['total_facebook_shares']),
             }, ignore_index=True)
-            
+
     sumup_df['percentage_change_engagement'] = ((sumup_df['engagement_repeat'] - sumup_df['engagement_normal'])/
                                                 sumup_df['engagement_normal']) * 100
     sumup_df = sumup_df.dropna()
@@ -144,22 +144,22 @@ def plot_engagement_change(sumup_df, data):
 
     # Percentage change in engagement
     random_y = list(np.random.random(len(sumup_df)))
-    ax1.plot(sumup_df['percentage_change_engagement'].values, random_y, 
+    ax1.plot(sumup_df['percentage_change_engagement'].values, random_y,
              'o', markerfacecolor='royalblue', markeredgecolor='blue', alpha=0.6,
              label='Facebook pages')
 
     low, high = calculate_confidence_interval_median(sumup_df['percentage_change_engagement'].values)
-    ax1.plot([low, np.median(sumup_df['percentage_change_engagement']), high], 
-             [0.5 for x in range(3)], '|-', color='navy', 
+    ax1.plot([low, np.median(sumup_df['percentage_change_engagement']), high],
+             [0.5 for x in range(3)], '|-', color='navy',
              linewidth=2, markersize=12, markeredgewidth=2)
-        
+
     ax1.set_xlabel('Percentage change in engagement\nbetween the repeat offender and normal periods')
     ax1.set_xlim(-110, 135)
     ax1.set_ylim(-.1, 1.1)
 
     ax1.axvline(x=0, color='k', linestyle='--', linewidth=1)
     ax1.set_xticks(
-        [-100, -75, -50, -25, 0, 25, 50, 75, 100, 125], 
+        [-100, -75, -50, -25, 0, 25, 50, 75, 100, 125],
         ['-100%', '-75%', '-50%', '-25%', ' 0%', '+25%', '+50%', '+75%', '+100%', '+125%']
     )
     ax1.set_yticks([])

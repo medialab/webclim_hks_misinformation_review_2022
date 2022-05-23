@@ -55,4 +55,9 @@ To generate the figures from the data csv files, run:
 ```
 python code/create_figures.py
 ```
+To generate the figures about Facebook groups posting behavior, run:
+```
+python code/create_figures_behavior_groups.py
+```
+
 The figures will appear in the `figure` folder.

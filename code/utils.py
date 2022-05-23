@@ -12,7 +12,7 @@ def import_data(file_name, folder=None):
         data_path = os.path.join(".", "data", folder, file_name)
     else:
         data_path = os.path.join(".", "data", file_name)
-    
+
     df = pd.read_csv(data_path, low_memory=False)
 
     return df
@@ -66,7 +66,7 @@ def infer_repeat_offender_periods(strike_dates):
                     strike_dates[index - 1] + np.timedelta64(90, 'D')
                 ])
 
-    # Because of the above definition, there can exist overlap between two periods 
+    # Because of the above definition, there can exist overlap between two periods
     # (e.g. the periods ['2021-02-23', '2021-03-17'] and ['2021-03-04', '2021-05-01'] are overlapping).
     # The script below merges the overlapping periods in one long period (['2021-02-23', '2021-05-01'])
     if len(overlapping_repeat_offender_periods) == 0:
@@ -85,7 +85,7 @@ def infer_repeat_offender_periods(strike_dates):
 
 
 def keep_repeat_offender_data(df, repeat_offender_periods):
-    
+
     if len(repeat_offender_periods) == 0:
         return pd.DataFrame()
 
@@ -95,7 +95,7 @@ def keep_repeat_offender_data(df, repeat_offender_periods):
                     (df['date'] <= repeat_offender_period[1])]
         if len(new_df) > 0:
             repeat_offender_df_list.append(new_df)
-    
+
     if len(repeat_offender_df_list) > 0:
         return pd.concat(repeat_offender_df_list)
     else:
@@ -103,7 +103,7 @@ def keep_repeat_offender_data(df, repeat_offender_periods):
 
 
 def keep_free_data(df, repeat_offender_periods):
-        
+
     if len(repeat_offender_periods) == 0:
         return df
 
@@ -118,7 +118,7 @@ def keep_free_data(df, repeat_offender_periods):
                         (df['date'] < repeat_offender_periods[ro_index][0])]
         if len(new_df) > 0:
             free_df_list.append(new_df)
-    
+
     if len(free_df_list) > 0:
         return pd.concat(free_df_list)
     else:

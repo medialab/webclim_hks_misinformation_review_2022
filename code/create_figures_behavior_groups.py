@@ -41,21 +41,6 @@ def save_data(df, file_name, append):
 
     print('{} is saved.'.format(file_name))
 
-
-def import_google_sheet (filename):
-
-    scope = ['https://spreadsheets.google.com/feeds', 'https://www.googleapis.com/auth/drive']
-    creds = ServiceAccountCredentials.from_json_keyfile_name('./credentials.json', scope)
-    client = gspread.authorize(creds)
-
-    sheet = client.open(filename)
-    sheet_instance = sheet.get_worksheet(0)
-    records_data = sheet_instance.get_all_records()
-    records_df = pd.DataFrame.from_dict(records_data)
-
-    return records_df
-
-
 def get_first_strike_date():
 
     df_dates = import_data('manually_filtered_reduced_posts.csv', folder = 'groups_crowdtangle_search')
@@ -453,7 +438,6 @@ def get_percentage_change_posts (df_dates, days):
     title = 'change_percentage_posts_' + timestr + '.csv'
 
     save_data(df_percentage_posts, title, 0)
-    #print('Median variation rate of posts:', df_percentage_posts['variation_rate_nb_posts'].median())
 
     return df_percentage_posts
 
@@ -471,107 +455,10 @@ def get_df ():
 
     return df_change_rating, df_change_category, df_change_posts
 
-def percentage_rating_template(ax, stat, median1, m1, m2):
-
-    #plt.axvline(x=0, color='k', linestyle='--', linewidth=1)
-    plt.vlines(x= median1 , ymin=m1-0.2, ymax=m2+0.2, color='gray', linestyle='--', linewidth=1)
-    plt.text(median1+0.53, m2+0.1, 'median', fontsize=7, color='blue')
-
-    if stat == 1 :
-        plt.xticks([0, 25, 50, 75, 100], ['0%', '25%', '50%', '75%', ' 100%'])
-        plt.xlim(-1, 101)
-
-    elif stat == 2:
-
-        plt.ticklabel_format(style = 'plain')
-
-    elif stat == 3:
-        plt.xticks([-100, -75, -50, -25, 0, 25, 50, 75, 100], ['-100%', '-75%', '-50%', ' -25%', '0%', '25%', '50%', '75%', ' 100%'])
-        plt.xlim(-101, 101)
-
-
-    plt.yticks([])
-    ax.set_frame_on(False)
-
-def plot_bubbles(df_per, rating, xlabel, title, stat):
-
-    plt.figure(figsize=(7, 2.5))
-    ax = plt.subplot(111)
-
-    random_y1 = np.random.random(len(df_per)).tolist()
-
-    plt.plot(df_per[rating].values,
-             random_y1,
-             'o',
-             markerfacecolor='blue',
-             markeredgecolor='blue',
-             alpha=0.6)
-
-    plt.title('{} Facebook groups \n (Self-declared as being under reduced distribution)'.format(len(df_per)))
-
-    median1 = np.median(df_per[rating])
-    m1 = min(random_y1)
-    m2 = max(random_y1)
-
-    percentage_rating_template(ax,
-                            stat,
-                            median1,
-                            m1,
-                            m2)
-
-    low, high = calculate_confidence_interval_median(df_per[rating].values)
-
-    plt.plot([low, np.median(df_per[rating]), high],
-             [0.5 for x in range(3)], '|-', color='navy',
-             linewidth=2, markersize=12, markeredgewidth=2)
-
-    plt.ylim(-.2, 1.2)
-
-    plt.xlabel(xlabel, size='large')
-
-    plt.tight_layout()
-    figure_path = title
-    save_figure(figure_path)
-
-def plot_figures():
-
-    #timestr = time.strftime('%Y_%m_%d')
-    timestr = '2022_03_23'
-
-    plot_bubbles(df_per = import_data ('change_percentage_rating_agg_' + timestr +'.csv', folder = 'iffy'),
-                 rating = 'variation_rate_nb_negative_iffy',
-                 xlabel = 'Variation rate of posts containing domain names \n with low and very low ratings (iffy) 30 days before and after the screenshot ' ,
-                 title = 'change_negative_rating_iffy_' + timestr ,
-                 stat = 2 )
-
-    plot_bubbles(df_per = import_data ('change_percentage_category_' + timestr +'.csv', folder = 'iffy'),
-                 rating = 'variation_rate_nb_platform_links',
-                 xlabel = 'Variation rate of posts containing domain names \n of platforms 30 days before and after the screenshot ' ,
-                 title = 'change_category_platform_' + timestr ,
-                 stat = 2 )
-
-    plot_bubbles(df_per = import_data ('change_percentage_category_' + timestr +'.csv', folder = 'iffy'),
-                 rating = 'variation_rate_nb_alt_platform_links',
-                 xlabel = 'Variation rate of posts containing domain names \n of alternative platforms 30 days before and after the screenshot ' ,
-                 title = 'change_category_alt_platform_' + timestr ,
-                 stat = 2 )
-
-    plot_bubbles(df_per = import_data ('change_percentage_category_' + timestr +'.csv', folder = 'iffy'),
-             rating = 'variation_rate_nb_links',
-             xlabel = 'Variation rate of posts containing a link \n  30 days before and after the screenshot ' ,
-             title = 'change_nb_links_' + timestr ,
-             stat = 2 )
-
-    plot_bubbles(df_per = import_data ('change_percentage_posts_' + timestr +'.csv', folder = 'iffy'),
-         rating = 'variation_rate_nb_posts',
-         xlabel = 'Variation rate of the number of posts \n  30 days before and after the screenshot ' ,
-         title = 'change_posts_' + timestr ,
-         stat = 2 )
-
 def get_median_behavioral_metrics():
 
-    #timestr = time.strftime('%Y_%m_%d')
-    timestr = '2022_03_23'
+    timestr = time.strftime('%Y_%m_%d')
+    #timestr = '2022_03_25'
     df1 = import_data('change_percentage_rating_agg_' + timestr +'.csv', folder = 'iffy')
     df2 = import_data('change_percentage_posts_' + timestr +'.csv', folder = 'iffy')
     df3 = import_data('change_percentage_category_' + timestr +'.csv', folder = 'iffy')
@@ -648,6 +535,7 @@ def get_median_behavioral_metrics():
     print(df_stat)
     print('median daily posts before', df2['nb_posts_before_mean_30_days'].median())
     print('median daily posts after', df2['nb_posts_after_mean_30_days'].median())
+
     return df_stat, df_plot1, df_plot2
 
 def calculate_confidence_interval_median(sample):
@@ -658,58 +546,6 @@ def calculate_confidence_interval_median(sample):
         medians.append(np.median(resampled_sample))
 
     return np.percentile(medians, 5), np.percentile(medians, 95)
-
-def plot_engagement_change(df1, df2):
-
-    fig, (ax0, ax1) = plt.subplots(1, 2, gridspec_kw={'width_ratios': [1, 1]})
-    fig.set_size_inches(5, 3)
-
-    ax0.bar(
-        [0.1], [np.median(df2['nb_posts_before_mean_30_days'])],
-        color='springgreen', edgecolor='black', width=0.8, alpha=0.4
-    )
-    ax0.bar(
-        [0.9], [np.median(df2['nb_posts_after_mean_30_days'])],
-        color='gold', edgecolor='black', width=0.8, alpha=0.4
-    )
-    low_before, high_before = calculate_confidence_interval_median(df2['nb_posts_before_mean_30_days'].values)
-    ax0.plot([0.1, 0.1], [low_before, high_before], color='black', linewidth=0.9)
-    low_after, high_after = calculate_confidence_interval_median(df2['nb_posts_after_mean_30_days'].values)
-    ax0.plot([0.9, 0.9], [low_after, high_after], color='black', linewidth=0.9)
-    ax0.set_xticks([0, 1]),
-    ax0.set_xticklabels(['30 days \n before', '30 days \n after'])
-    ax0.set_xlabel('the notification date')
-    ax0.tick_params(axis='x', which='both', length=0)
-    ax0.set_xlim(-.5, 1.5)
-    ax0.set_ylabel('Median of posts per day')
-    ax0.set_ylim(-.1, 15)
-    ax0.set_yticks([0, 5, 10, 15, 20])
-    ax0.set_frame_on(False)
-
-    ax1.bar(
-        [0.1], [np.median(df1['share_iffy_links_before'])],
-        color='springgreen', edgecolor='black', width=0.8, alpha=0.4
-    )
-    ax1.bar(
-        [0.9], [np.median(df1['share_iffy_links_before'])],
-        color='gold', edgecolor='black', width=0.8, alpha=0.4
-    )
-    low_before, high_before = calculate_confidence_interval_median(df1['share_iffy_links_before'].values)
-    ax1.plot([0.1, 0.1], [low_before, high_before], color='black', linewidth=0.9)
-    low_after, high_after = calculate_confidence_interval_median(df1['share_iffy_links_before'].values)
-    ax1.plot([0.9, 0.9], [low_after, high_after], color='black', linewidth=0.9)
-    ax1.set_xticks([0, 1]),
-    ax1.set_xticklabels(['30 days \n before', '30 days \n after'])
-    ax1.set_xlabel('the notification date')
-    ax1.tick_params(axis='x', which='both', length=0)
-    ax1.set_xlim(-.5, 1.5)
-    ax1.set_ylabel('Median share of links \n rated low or very-low')
-    ax1.set_ylim(-.1, 20)
-    ax1.set_frame_on(False)
-
-    fig.suptitle("{} Facebook groups \n self-declared as being under reduced distribution".format(len(df1)))
-    fig.tight_layout()
-    save_figure('figure_post_links')
 
 def plot_change(df, var1, var2, var3, kind, variable_name, figure_name, list_yticks, title, proportion):
 
@@ -768,25 +604,23 @@ def plot_change(df, var1, var2, var3, kind, variable_name, figure_name, list_yti
 
     save_figure(figure_name)
 
-def main():
+def create_figures():
 
-    #df_change_rating, df_change_category, df_change_posts = get_df()
-    #df_stat, df_plot1, df_plot2 = get_median_behavioral_metrics()
     timestr = time.strftime('%Y_%m_%d')
-    #timestr = '2022_03_23'
+    #timestr = '2022_03_25'
     df_change_rating = import_data('change_percentage_rating_agg_' + timestr +'.csv', folder = 'iffy')
     df_change_posts = import_data('change_percentage_posts_' + timestr +'.csv', folder = 'iffy')
+
     print(np.median(df_change_rating['percentage_point_change_share_iffy_links']))
     print(np.median(df_change_posts['variation_rate_daily_nb_posts']))
-    #plot_engagement_change(df1 = df_change_rating , df2 = df_change_posts)
-    #plot_figures()
+
     plot_change(df = df_change_posts,
                 var1 = 'nb_posts_before_mean_30_days',
                 var2 = 'nb_posts_after_mean_30_days',
                 var3 = 'variation_rate_daily_nb_posts',
                 kind = 'Percentage change of',
                 variable_name = 'daily posts',
-                figure_name = 'posts_per_day_reduced_groups',
+                figure_name = 'posts_per_day_reduced_groups_' + timestr,
                 list_yticks = [0, 5, 10, 15, 20],
                 title = 1,
                 proportion = 0)
@@ -797,11 +631,16 @@ def main():
                 var3 = 'percentage_point_change_share_iffy_links',
                 kind = 'Percentage change of the',
                 variable_name = 'proportion of low/very-low \n credibility links in posts',
-                figure_name = 'iffy_links_reduced_groups',
+                figure_name = 'iffy_links_reduced_groups_' + timestr,
                 list_yticks = [0, 5, 10, 15],
                 title = 0,
                 proportion = 1 )
 
+def main():
+
+    get_df ()
+    get_median_behavioral_metrics()
+    create_figures()
 
 if __name__=="__main__":
 
